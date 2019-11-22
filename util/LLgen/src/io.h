@@ -16,11 +16,13 @@
  * Some important file names and variables
  */
 
-# include <stdio.h>
+#include <stdio.h>
 
 /* FILES */
 
 # define OUTFILE	"%s.output"	/* -v option */
+# define PARSERFILE	"xxxXXXXXX"	/* This is what we want */
+# define ACTFILE	"tempXXXXXX"	/* temporary file to save actions */
 # define HFILE		"%spars.h"	/* file for "#define's " */
 # define RFILE		"%spars.c"	/* Error recovery */
 #ifdef NON_CORRECTING
@@ -39,3 +41,14 @@ extern char	f_rec[];
 #ifdef NON_CORRECTING
 extern char	f_nc[];
 #endif
+
+/* gencode.c */
+void outseek(FILE *, long);
+
+/* machdep.c */
+void RENAME(string,string);
+string libpath(string);
+FILE *newtmp(string);
+
+/* savegram.c */
+void save_grammar(FILE *);

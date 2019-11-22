@@ -18,6 +18,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 # include "extern.h"
 # include "types.h"
 
@@ -29,6 +30,14 @@ static string rcsid5 = "$Id$";
 #define LIBDIR "lib"
 #endif
 
+
+void RENAME(string x,string y)
+{
+	/* Must move the file "x" to the file "y" */
+
+	if (rename(x, y) == -1)
+		fatal(1, "Cannot rename to %s", y);
+}
 
 string libpath(string s)
 {
@@ -47,10 +56,23 @@ string libpath(string s)
 	return p;
 }
 
-void TMPNAM(string result)
+FILE *newtmp(string template)
 {
-   if (tmpnam(result)==NULL)
-   {
-	   fatal(1, "Cannot create temporary file.", NULL);
-   }
+	/*
+	 * Overwrite "template" to name a new temporary file.
+	 * Open it.  May fail by returning NULL.
+	 */
+	FILE *stream;
+	int fd;
+
+	if ((fd = mkstemp(template)) == -1 ||
+	    (stream = fdopen(fd, "w+")) == NULL)
+	{
+		if (fd != -1) {
+			unlink(template);
+			close(fd);
+		}
+		return NULL;
+	}
+	return stream;
 }

@@ -49,7 +49,6 @@ static int firsts; /* are there any? */
 static int listcount;
 
 /* In this file the following routines are defined: */
-STATIC void doclose(FILE *);
 STATIC int *mk_tokenlist(void);
 STATIC void genhdr(void);
 STATIC void opentemp(string);
@@ -83,19 +82,17 @@ STATIC void out_list(int *, int, int);
 STATIC void genextname(int, char *, FILE *);
 STATIC void correct_prefix(void);
 
-
-extern void save_grammar(FILE *f);
-
 # define NOPOP		-20000
 
 
-STATIC void doclose(FILE *f)
+void outseek(FILE *f, long off)
 {
+	fflush(f);
 	if (ferror(f) != 0)
 	{
 		fatal(0, "Write error on temporary", NULL );
 	}
-	fclose(f);
+	fseek(f, off, SEEK_SET);
 }
 
 STATIC int *mk_tokenlist(void)
@@ -125,11 +122,7 @@ void gencode(int argc)
 	register p_file p = files;
 
 	/* Set up for code generation */
-	if ((fact = fopen(f_temp, "r")) == NULL )
-	{
-		fatal(0, e_noopen, f_temp);
-	}
-
+	outseek(fact, 0L);
 #ifdef NON_CORRECTING
 	/* The non-correcting error recovery must be generated BEFORE
 	 parser code is generated!!!! In case of conflict resolvers,
@@ -150,7 +143,7 @@ void gencode(int argc)
 		/* generate code ... */
 		generate(p);
 		getaction(2);
-		doclose(fpars);
+		outseek(fpars, 0L);
 		/* And install */
 		install(genname(p->f_name), p->f_name);
 		p++;
@@ -159,12 +152,14 @@ void gencode(int argc)
 	genrecovery();
 
 	fclose(fact);
+	fact = NULL;
+	remove(f_temp);
 }
 
 STATIC void opentemp(string str)
 {
 
-	if ((fpars = fopen(f_pars, "w")) == NULL )
+	if ((fpars = newtmp(f_pars)) == NULL)
 	{
 		fatal(0, e_noopen, f_pars);
 	}
@@ -195,7 +190,7 @@ STATIC void geninclude(void)
 		fprintf(fpars, "#define %sNONCORR\n", prefix ? prefix : "LL");
 	}
 #endif
-	doclose(fpars);
+	outseek(fpars, 0L);
 	install(f_include, ".");
 }
 
@@ -319,7 +314,7 @@ STATIC void genrecovery(void)
 	}
 	fputs("#define LL_NEWMESS\n", f);
 	copyfile(rec_file);
-	doclose(f);
+	outseek(f, 0L);
 	install(f_rec, ".");
 }
 
@@ -360,7 +355,7 @@ STATIC void genncrecovery(void)
 	copyfile(nc_incl_file);
 	copyfile(nc_rec_file);
 
-	doclose(f);
+	outseek(f, 0L);
 	install(f_nc, ".");
 }
 #endif
@@ -503,7 +498,6 @@ STATIC void getparams(void)
 	 */
 	long off;
 	register int l;
-	long ftell();
 	char first;
 	char add_semi = ' ';
 
@@ -537,7 +531,7 @@ STATIC void getparams(void)
 	l = getc(fact); /* patch: some implementations of fseek
 	 do not work properly after "ungetc"
 	 */
-	fseek(fact, off, 0);
+	fseek(fact, off, SEEK_SET);
 	getaction(0);
 	fprintf(fpars, "%c\n", add_semi);
 }
@@ -567,14 +561,14 @@ STATIC void genprototypes(register p_file f)
 		if (p->n_flags & PARAMS)
 		{
 			fputs("(\n", fpars);
-			fseek(fact, p->n_off, 0);
+			fseek(fact, p->n_off, SEEK_SET);
 			controlline();
 			getansiparams(0);
 		}
 		else
 			fputs("(void);\n", fpars);
 	}
-	fseek(fact, off, 0);
+	fseek(fact, off, SEEK_SET);
 }
 
 /* getansiparams is called if a nonterminal has parameters

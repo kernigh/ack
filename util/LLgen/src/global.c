@@ -45,8 +45,8 @@ FILE	*fout;
 FILE	*fpars;
 FILE	*finput;
 FILE	*fact;
-char	f_pars[L_tmpnam+sizeof(char)]; /* Add one more character for NULL, just in case of buggy implementations. */
-char	f_temp[L_tmpnam+sizeof(char)];
+char	f_pars[] = PARSERFILE;
+char	f_temp[] = ACTFILE;
 #ifdef NON_CORRECTING
 char	f_nc[20];
 #endif

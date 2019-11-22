@@ -192,7 +192,6 @@ void do_compute(void)
 	register p_start st;
 	register int i;
 	int n = NINTS(NBYTES(nnonterms));
-	p_mem alloc();
 
 	for (f = files; f < maxfiles; f++)
 	{
@@ -857,7 +856,6 @@ STATIC void do_lengthcomp(void)
 {
 	register p_length pl;
 	register p_nont p;
-	p_mem alloc();
 
 	length = (p_length) alloc(nnonterms * sizeof(*length));
 	for (pl = &length[nnonterms - 1]; pl >= length; pl--)

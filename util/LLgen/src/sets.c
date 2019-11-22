@@ -33,7 +33,6 @@ static int	setsize;
 int		tsetsize;
 p_set		*setptr, *maxptr;
 static t_info	set_info;
-p_mem		alloc();
 
 /*
  * Initialises some variables needed for setcomputations

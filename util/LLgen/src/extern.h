@@ -111,10 +111,6 @@ int t_after(int, int, int);
 /* gencode.c */
 void gencode(int);
 
-/* machdep.c */
-void TMPNAM(string);
-string libpath(string);
-
 /* main.c */
 void error(int lineno,string s,string t);
 void warning(int lineno,string s,string t);
