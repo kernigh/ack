@@ -379,16 +379,11 @@ void init_files(void)
 	 * during assembly are set up here.
 	 */
 
-	/*
-	 * The function tmpfil() returns a file-descriptor
-	 * of a file that is valid for reading and writing.
-	 * It has the nice property of generating truly unique names.
-	 */
-
-	tfile = fopen(tmpfil(), "w+");
-	dfile = fopen(tmpfil(), "w+");
-	rtfile = fopen(tmpfil(), "w+");
-	rdfile = fopen(tmpfil(), "w+");
+	if ((tfile = tmpfile()) == NULL ||
+	    (dfile = tmpfile()) == NULL ||
+	    (rtfile = tmpfile()) == NULL ||
+	    (rdfile = tmpfile()) == NULL)
+		fatal("can't create temporary files");
 }
 
 void initproc(void)

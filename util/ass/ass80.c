@@ -73,6 +73,14 @@ void fatal(char *s)
 
 
 
+void xrewind(FILE *af)
+{
+	fflush(af) ;
+	if ( ferror(af) )
+		fatal("write error") ;
+	rewind(af) ;
+}
+
 int xgetc(register FILE *af)
 {
 	register int nextc;
@@ -379,14 +387,4 @@ void set_mode(int mode)
 	default:
 		fatal("Unknown mode in set_mode") ;
 	}
-}
-
-
-char* tmpfil(void)
-{
-	if (sys_tmpnam(filename)==NULL)
-	{
-		fatal("Cannot create temporary filename.");
-	}
-	return filename;
 }

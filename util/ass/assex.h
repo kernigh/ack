@@ -122,9 +122,8 @@ extern  char    *opindex[] ;
 extern  char    opchoice[] ;
 extern  int     maxinsl ;
 
-/* Generate temporary filename. Fatal error in case of error. */
-extern char *tmpfil(void);
-
+/* Flush and rewind stream, fatal error if it gives an error. */
+extern void xrewind(FILE *stream);
 
 /* Read next byte from "af" file, fatal error if there isn't one. */
 extern int xgetc(register FILE *af);

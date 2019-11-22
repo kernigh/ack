@@ -130,8 +130,8 @@ void copyout(void)
 	if ((ifile = fopen(eout, "w")) == 0)
 		fatal("can't create e.out");
 
-	rewind(tfile);
-	rewind(dfile);
+	xrewind(tfile);
+	xrewind(dfile);
 
 	xput16(as_magic, ifile);
 	xput16(intflags, ifile);
@@ -170,7 +170,7 @@ static void dataprocess(FILE *f1, FILE *outf)
 	FOFFSET i;
 	register int ieof;
 
-	rewind(rdfile);
+	xrewind(rdfile);
 	ieof = getblk(rdfile, (char *) (&datareloc.r_off),
 			sizeof datareloc - sizeof datareloc.r_next);
 	for (i = 0; i < dataoff && !ieof; i++)
@@ -221,7 +221,7 @@ static void textprocess(FILE *f1, FILE *outf)
 	char *op_curr;
 	register FOFFSET keep;
 
-	rewind(rtfile);
+	xrewind(rtfile);
 	keep = textoff;
 	textoff = 0;
 	otfile = tfile;
