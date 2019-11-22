@@ -278,7 +278,7 @@ int scanner(void)
 			}
 			off = ftell(fact);
 			copyact('(', ')', in_production != 0 ? 0 : 2, 0);
-			if (nparams == 0) fseek(fact, off, 0);
+			if (nparams == 0) outseek(fact, off);
 			lextoken.t_num = nparams;
 			return C_PARAMS;
 		  case ISLIT :
