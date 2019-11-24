@@ -6,7 +6,6 @@
 
 #include <stdarg.h>
 #include <stdlib.h>
-#include <stdio.h>
 #include <stdbool.h>
 #include <unistd.h>
 #include <signal.h>
@@ -59,12 +58,12 @@ static const struct
 #define MAXARGS 1024 /* mar # of args */
 #define NTEMPS 4 /* # of temporary files; not tunable */
 
-static char tmpbase[] = TMP_DIR "/ego.XXXXXX";
-static char ddump[128] = TMP_DIR; /* data label dump file */
-static char pdump[128] = TMP_DIR; /* procedure name dump file */
-static char tmpbufs[NTEMPS * 2][128] = {
-	TMP_DIR
-};
+#define TMP_EGO TMP_DIR "/ego.XXXXXX"
+static bool made_tsubdir = false;
+static char tsubdir[] = TMP_EGO;
+static char ddump[sizeof(TMP_EGO "/dd")]; /* data label dump file */
+static char pdump[sizeof(TMP_EGO "/pd")]; /* procedure name dump file */
+static char tmpbufs[NTEMPS * 2][sizeof(TMP_EGO "/A.BB")];
 
 static int O2phases[] = { /* Passes for -O2 */
 	CJ, BO, SP, 0
@@ -91,7 +90,7 @@ static int keeptemps = 0;
 static char** phase_args;
 static int nphase_args;
 
-static const char* descr_file;
+static char* descr_file;
 static const char* opt_dir;
 static const char* prog_name;
 
@@ -102,7 +101,7 @@ cleanup()
 {
 	/*	Cleanup temporaries */
 
-	if (!keeptemps)
+	if (made_tsubdir && !keeptemps)
 	{
 		register int i;
 
@@ -116,9 +115,8 @@ cleanup()
 			(void)unlink(ddump);
 		if (pdump[0] != '\0')
 			(void)unlink(pdump);
+		(void)rmdir(tsubdir);
 	}
-
-	(void)unlink(tmpbase);
 }
 
 /*VARARGS1*/
@@ -205,7 +203,7 @@ new_outfiles()
 	char** dst = &phargs[NTEMPS + 1];
 
 	if (!Bindex)
-		Bindex = strlen(tmpbufs[0]) - 2;
+		Bindex = strlen(tmpbufs[0]) - 1;
 
 	for (i = 1; i <= NTEMPS; i++)
 	{
@@ -407,33 +405,25 @@ int main(int argc, char* argv[])
 		fatal("no correct -P flag given");
 	}
 
-	close(mkstemp(tmpbase));
-	strcpy(ddump, tmpbase);
-	strcpy(pdump, tmpbase);
-	strcpy(tmpbufs[0], tmpbase);
-
 	if (keeptemps)
 	{
-		(void)strcpy(ddump, ".");
-		(void)strcpy(pdump, ".");
-		(void)strcpy(tmpbufs[0], ".");
+		/* Keep tsubdir in the current directory. */
+		char* part = strrchr(tsubdir, '/') + 1;
+		(void)memmove(tsubdir, part, strlen(part) + 1);
 	}
-	(void)strcat(ddump, "dd");
-	(void)strcat(pdump, "pd");
-
-	(void)strcat(tmpbufs[0], "A.BB");
-	for (i=1; i<(2 * NTEMPS); i++)
-		(void)strcpy(tmpbufs[i], tmpbufs[0]);
-
-	i = strlen(tmpbufs[0]) - 4;
-	tmpbufs[0][i] = 'p';
-	tmpbufs[NTEMPS + 0][i] = 'p';
-	tmpbufs[1][i] = 'd';
-	tmpbufs[NTEMPS + 1][i] = 'd';
-	tmpbufs[2][i] = 'l';
-	tmpbufs[NTEMPS + 2][i] = 'l';
-	tmpbufs[3][i] = 'b';
-	tmpbufs[NTEMPS + 3][i] = 'b';
+	if (mkdtemp(tsubdir) == NULL)
+		fatal("Could not make temporary directory");
+	made_tsubdir = true;
+	(void)sprint(ddump, "%s/dd", tsubdir);
+	(void)sprint(pdump, "%s/pd", tsubdir);
+	for (i=0; i<(2 * NTEMPS);)
+	{
+		/* procedure table, data table, lines, basic blocks */
+		(void)sprint(tmpbufs[i++], "%s/p.BB", tsubdir);
+		(void)sprint(tmpbufs[i++], "%s/d.BB", tsubdir);
+		(void)sprint(tmpbufs[i++], "%s/l.BB", tsubdir);
+		(void)sprint(tmpbufs[i++], "%s/b.BB", tsubdir);
+	}
 
 	run_phase(IC);
 	run_phase(CF);
