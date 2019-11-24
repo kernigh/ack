@@ -36,11 +36,11 @@ calcnt_p cchead; /* call-count info of current proc */
 STATIC long space = 0;
 STATIC long total_size = 0;
 
-STATIC char cname[128] = TMP_DIR;
-STATIC char ccname[128] = TMP_DIR;
+STATIC char cname[] = TMP_DIR "/ego.i1.XXXXXX";
+STATIC char ccname[] = TMP_DIR "/ego.i2.XXXXXX";
 
 /* For debugging only */
-STATIC char sname[128] = TMP_DIR;
+STATIC char sname[] = TMP_DIR "/ego.i3.XXXXXX";
 STATIC int kp_temps = 0;
 
 int Ssubst;
@@ -48,6 +48,21 @@ int Ssubst;
 int Senv, Srecursive, Slocals, Sinstrlab, Sparsefails, Spremoved, Scals;
 int Sbig_caller, Sdispensable, Schangedcallee, Sbigcallee, Sspace, Szeroratio;
 #endif
+
+STATIC void il_mkstemp(char *template)
+{
+	int fd;
+	char *part;
+
+	if (kp_temps) {
+		/* Keep the temporary in the current directory. */
+		part = strrchr(template, '/') + 1;
+		memmove(template, part, strlen(part) + 1);
+	}
+	if ((fd = mkstemp(template)) == -1)
+		error("cannot create temporary");
+	close(fd); /* A pass will reopen it. */
+}
 
 /* P A S S  1
  *
@@ -59,7 +74,7 @@ int Sbig_caller, Sdispensable, Schangedcallee, Sbigcallee, Sspace, Szeroratio;
  * The call descriptors are put in a file (calfile).
  */
 
-STATIC void pass1(const char *lnam, const char *bnam, const char *cnam)
+STATIC void pass1(const char *lnam, const char *bnam, char *cnam)
 {
 	FILE* f, *gf, *cf, *ccf; /* The EM input, the basic block graph,
 				  * the call-list file and the calcnt file.
@@ -71,7 +86,9 @@ STATIC void pass1(const char *lnam, const char *bnam, const char *cnam)
 
 	f = openfile(lnam, "r");
 	gf = openfile(bnam, "r");
+	il_mkstemp(cnam);
 	cf = openfile(cnam, "w");
+	il_mkstemp(ccname);
 	ccf = openfile(ccname, "w");
 	mesregs = Lempty_set();
 	apriori(fproc);
@@ -125,7 +142,7 @@ STATIC void pass1(const char *lnam, const char *bnam, const char *cnam)
  * be expanded in line. It does not use the EM text.
  */
 
-STATIC char cname2[128] = TMP_DIR;
+STATIC char cname2[] = TMP_DIR "/ego.i4.XXXXXX";
 
 STATIC void pass2(const char *cnam, long space)
 {
@@ -133,6 +150,7 @@ STATIC void pass2(const char *cnam, long space)
 	call_p c, a;
 
 	cf = openfile(cnam, "r");
+	il_mkstemp(cname2);
 	cf2 = openfile(cname2, "w");
 	ccf = openfile(ccname, "r");
 	while ((c = getcall(cf)) != (call_p)0)
@@ -191,6 +209,7 @@ void pass3(const char *lnam, const char *lnam2)
 	lfile2 = openfile(lnam2, "w");
 	if (verbose)
 	{
+		il_mkstemp(sname);
 		sfile = openfile(sname, "w");
 	}
 	mesregs = Lempty_set();
@@ -317,10 +336,6 @@ void il_flags(void *vp)
 			complete_program = 1;
 			break;
 		case 't':
-			strcpy(cname, ".");
-			strcpy(ccname, ".");
-			strcpy(sname, ".");
-			strcpy(cname2, ".");
 			kp_temps = 1;
 			break;
 	}
@@ -334,14 +349,6 @@ char* argv[];
 
 	go(argc, argv, no_action, no_action, no_action, il_flags);
 	il_extptab(fproc); /* add extended data structures */
-	strcat(cname, "/ego.i1.XXXXXX");
-	strcat(ccname, "/ego.i2.XXXXXX");
-	strcat(sname, "/ego.i3.XXXXXX");
-	strcat(cname2, "/ego.i4.XXXXXX");
-	close(mkstemp(cname));
-	close(mkstemp(ccname));
-	close(mkstemp(sname));
-	close(mkstemp(cname2));
 	pass1(files->lname_in, files->bname_in, cname); /* grep calls, analyse procedures */
 	space = total_size * space / 100;
 	pass2(cname, space); /* select calls to be expanded */
