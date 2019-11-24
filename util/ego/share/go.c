@@ -53,8 +53,6 @@ void go(int argc, char * const *argv,
 	bblock_p g;
 	line_p l;
 	short kind;
-	int i;
-	char* p;
 	bool time_opt = TRUE;
 
 	linecount = 0;
@@ -93,9 +91,11 @@ void go(int argc, char * const *argv,
 				verbose_flag = TRUE;
 				break;
 
-			case '?':
-				proc_flag(argv[optind - 1]);
+			case '?': {
+				char c = optopt;
+				(*proc_flag)(&c);
 				break;
+			}
 		}
 	}
 	time_space_ratio = (time_opt ? 100 : 0);
