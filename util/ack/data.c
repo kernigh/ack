@@ -2,6 +2,7 @@
  * (c) copyright 1987 by the Vrije Universiteit, Amsterdam, The Netherlands.
  * See the copyright notice in the ACK home directory, in the file "Copyright".
  */
+#include <em_path.h>
 #include "ack.h"
 #include "list.h"
 #include "trans.h"
@@ -39,8 +40,7 @@ int n_error = 0; /* Number of errors encountered */
 char* progname = NULL; /* The program call name */
 
 char* outfile = NULL; /* The result file e.g. a.out */
-char template[20] = {}; /* The template for temporary file
-         names */
+char tsubdir[] = TMP_DIR "/" TMPNAME; /* The temporary subdirectory */
 
 trf* linker = NULL; /* Pointer to the Loader/Linker */
 trf* cpp_trafo = NULL; /* Pointer to C-preprocessor */

@@ -12,7 +12,6 @@
 #include "trans.h"
 #include "grows.h"
 #include "data.h"
-#include <em_path.h>
 
 #ifndef NORCSID
 static char rcs_id[] = "$Id$" ;
@@ -66,9 +65,8 @@ int setfiles(trf *phase) {
 	} else {
 		gr_init(&pathname) ;
 		if ( !phase->t_keep && !t_flag ) {
-			gr_cat(&pathname,TMP_DIR) ;
+			gr_cat(&pathname,tsubdir) ;
 			gr_cat(&pathname,"/") ;
-			gr_cat(&pathname,template) ;
 			gr_cat(&pathname,unique()) ;
 			out.p_keep=NO ;
 		} else {
@@ -157,6 +155,13 @@ void rmtemps(void) {
 		if ( t_cont(*elem)->t_combine && t_cont(*elem)->t_do ) {
 			disc_inputs(t_cont(*elem)) ;
 		}
+	}
+	rmtsubdir();
+}
+
+void rmtsubdir(void) {
+	if ( rmdir(tsubdir)!=0 ) {
+		werror("couldn't rmdir %s",tsubdir);
 	}
 }
 

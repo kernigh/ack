@@ -38,8 +38,7 @@ extern int n_error; /* Number of errors encountered */
 extern char* progname; /* The program call name */
 
 extern char* outfile; /* The result file e.g. a.out */
-extern char template[20]; /* The template for temporary file
-          names */
+extern char tsubdir[20]; /* The temporary subdirectory */
 
 extern trf* linker; /* Pointer to the Loader/Linker */
 extern trf* cpp_trafo; /* Pointer to C-preprocessor */

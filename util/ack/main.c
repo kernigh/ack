@@ -83,7 +83,8 @@ int main(int argc, char** argv)
 	}
 	transini();
 	scanneeds();
-	sprintf(template, TMPNAME, getpid());
+	if (mkdtemp(tsubdir) == NULL)
+		error("Could not make temporary directory");
 	if (n_error && !k_flag)
 		exit(n_error);
 
@@ -143,10 +144,14 @@ int main(int argc, char** argv)
 				p_basename = 0;
 			}
 			if (!startrf(phase) && !k_flag)
+			{
+				rmtsubdir();
 				exit(1);
+			}
 		}
 	}
 
+	rmtsubdir();
 	if (n_error)
 		exit(n_error);
 

@@ -13,7 +13,7 @@
 /****************************************************************************/
 
 #define FRONTENDS "fe" /* The front-end definitions */
-#define TMPNAME "Ack_%x" /* Naming of temp. files */
+#define TMPNAME "Ack_XXXXXX" /* Naming of temp. files */
 
 /****************************************************************************/
 /*         Internal mnemonics, should not be tinkered with                  */
@@ -66,6 +66,7 @@ typedef struct
 
 /* files.h */
 extern void rmtemps(void);
+extern void rmtsubdir(void);
 
 /* rmach.c */
 extern void setlist(char*);
